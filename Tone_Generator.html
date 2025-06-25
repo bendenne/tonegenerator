@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Tone Generator</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+    input[type="range"] {
+      width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Tone Generator</h1>
+  <label for="frequency">Frequency: <span id="freqValue">440</span> Hz</label><br>
+  <input type="range" id="frequency" min="20" max="1000" value="440">
+  <br><br>
+  <label for="volume">Volume:</label><br>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+  <br><br>
+  <button id="toggle">Play</button>
+
+  <script>
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let oscillator;
+    let gainNode = audioContext.createGain();
+    gainNode.gain.value = 0.5;
+    gainNode.connect(audioContext.destination);
+    let isPlaying = false;
+
+    const freqSlider = document.getElementById('frequency');
+    const volumeSlider = document.getElementById('volume');
+    const freqValue = document.getElementById('freqValue');
+    const toggleBtn = document.getElementById('toggle');
+
+    freqSlider.addEventListener('input', () => {
+      freqValue.textContent = freqSlider.value;
+      if (oscillator) {
+        oscillator.frequency.setValueAtTime(freqSlider.value, audioContext.currentTime);
+      }
+    });
+
+    volumeSlider.addEventListener('input', () => {
+      gainNode.gain.setValueAtTime(volumeSlider.value, audioContext.currentTime);
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        oscillator = audioContext.createOscillator();
+        oscillator.type = 'sine'; // Can be 'square', 'sawtooth', 'triangle'
+        oscillator.frequency.setValueAtTime(freqSlider.value, audioContext.currentTime);
+        oscillator.connect(gainNode);
+        oscillator.start();
+        toggleBtn.textContent = 'Stop';
+        isPlaying = true;
+      } else {
+        oscillator.stop();
+        oscillator.disconnect();
+        oscillator = null;
+        toggleBtn.textContent = 'Play';
+        isPlaying = false;
+      }
+    });
+  </script>
+</body>
+</html>
